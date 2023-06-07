@@ -1,0 +1,11 @@
+# command line - read pcap file
+
+rosrun hdl_grabber_driver velodyne_hdl_node _model:=32E _calib_file:=32db.xml _isgps:=true _pcap:=recta2.pcap _syncdata:=syncDatarecta2.txt
+
+# command line - request point cloud sweep service - single pcloud
+
+rosservice call /request_pcloud_sweep 1
+
+# command line - request point cloud sweep service OFF
+
+rosservice call /request_pcloud_sweep 0

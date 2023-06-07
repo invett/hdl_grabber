@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+<launch>
+ 
+    <!-- ARGUMENTS -->
+	<arg name="nodelet_manager"      default="hdl_grabber_nodelet_manager" />
+	<arg name="velodyne_nodelet"     default="hdl_grabber_nodelet" />
+
+
+	<arg name="model"                default="VLP32C" />
+	<arg name="frame_id"             default="velodyne" />
+	<arg name="pcloud_topic"         default="velodyne_points" />
+	<arg name="calib_file"           default="$(find hdl_grabber)/calib_files/VLP-32c.xml" />
+	<arg name="ipaddress"            default="192.168.0.201" />
+	<arg name="port"                 default="2368" />
+	<arg name="port_gps"             default="8308" />
+	<arg name="minFilterDistance"    default="0.0" /> 
+	<arg name="maxFilterDistance"    default="150.0" />
+	 
+	<arg name="datapath"             default="/home/carlota/5_Data/SHOW/" />
+ 	<arg name="pcap"                 default="2022_02_14/velodyne/vuelta_10_km_h.pcapng" />	
+
+ 	<arg name="ismapping"            default="true" /> 	   
+	<arg name="syncdata"             default="" />
+	<arg name="sweep_corr_file"      default="" />
+
+	<arg name="isTransformOn"        default="false" />
+	<arg name="tras_x"               default="0.0" /> 
+	<arg name="tras_y"               default="0.0" />
+	<arg name="tras_z"               default="0.0" />
+	<arg name="roll"                 default="0.0" />
+	<arg name="pitch"                default="0.0" />
+	<arg name="yaw"                  default="0.0" />	
+		
+
+	<!-- in case you use velodyne_driver, comment out the following line -->
+	<node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>   <!-- hdl_grabber_nodelet -->
+	<node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="load hdl_grabber/HdlGrabberNodelet $(arg nodelet_manager)">
+
+		<param name="model"        type="string"          value="$(arg model)" />
+		<param name="frame_id"     type="string"          value="$(arg frame_id)" />
+		<param name="pcloud_topic" type="string"          value="$(arg pcloud_topic)" />
+		<param name="calib_file"   type="string"          value="$(arg calib_file)" />  
+		<param name="minFilterDistance"              type="double"          value="$(arg minFilterDistance)" />
+		<param name="maxFilterDistance"              type="double"          value="$(arg maxFilterDistance)" />
+		<!-- OJO: si ismapping=true, frame_id de drive/pose_map es /odom, sino es /map-->
+		<!-- OJO: frame_id de drive/pose_odom siempre es /odom-->
+		<param name="ismapping"    type="bool"            value="$(arg ismapping)" />
+		<!-- datos para la lectura de ficheros pcap -->
+		<param name="pcap"            type="string"      value="$(arg pcap)" />
+		<param name="ipaddress"       type="string"      value="$(arg ipaddress)" />	   
+		<param name="syncdata"        type="string"      value="$(arg syncdata)" />
+		<param name="port"            type="int"         value="$(arg port)" />
+		<param name="port_gps"            type="int"         value="$(arg port_gps)" />
+		<param name="sweep_corr_file" type="string"      value="$(arg sweep_corr_file)" />
+		<param name="datapath"        type="string"      value="$(arg datapath)" />	
+		<!-- transformar internamente velodynes a otros frames  -->
+		<param name="isTransformOn"    type="bool"            value="$(arg isTransformOn)" />
+		<param name="tras_x"           type="double"          value="$(arg tras_x)" />
+		<param name="tras_y"           type="double"          value="$(arg tras_y)" />
+		<param name="tras_z"           type="double"          value="$(arg tras_z)" />
+		<param name="roll"             type="double"          value="$(arg roll)" />
+		<param name="pitch"            type="double"          value="$(arg pitch)" />
+		<param name="yaw"              type="double"          value="$(arg yaw)" />
+	</node>
+
+   
+  
+</launch>
+

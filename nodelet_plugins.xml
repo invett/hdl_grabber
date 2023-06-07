@@ -1,0 +1,5 @@
+<library path="lib/libhdl_grabber_nodelet">
+<class name="hdl_grabber/HdlGrabberNodelet" type="hdl_grabber::HdlGrabberNodelet" base_class_type="nodelet::Nodelet" />
+</library>
+
+

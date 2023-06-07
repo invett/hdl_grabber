@@ -1,0 +1,27 @@
+###########      PARAMETERS CONFIGURATION         ###########
+########### HDL_GRABBER DRIVER for Velodyne LiDar ###########
+#############################################################
+
+################### Sensor information ######################
+#############################################################
+frame_id: /velodyne
+model: 32E
+
+################### Sensor configuration ####################
+#############################################################
+
+port: 2368
+ipaddress: 192.168.1.201
+calib_file: $(find hdl_grabber_driver)/calib_files/32db.xml
+isgps: true # whether the gps acquisition is enabled or not
+
+
+############## Offline sensor configuration #################
+#############################################################
+pcap:  trayecto1_uah # if pcap file is empty online acquisiton is enabled
+syncadata: syncDataRTK_trayecto1_uah_from_1_to_3100 # syncronized motion data RTK & odometry file
+sweep_corr_file: sectionCorrection_trayecto1_uah # 3DoF sweep correction data file  
+datapath: /home/carlota/0_Work/6_Data/CSIC_IROS_2018/2018_09_21/ # path directory for offline processing
+
+
+
