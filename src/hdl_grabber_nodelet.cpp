@@ -220,9 +220,9 @@ public:
         
         //msf_pose_update_pub_ = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/msf_core/pose_after_update",2);
         //msf_pose_pub_ = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/msf_core/pose",2);
-        odom_pub_=node.advertise<geometry_msgs::PoseStamped> ("drive/pose_odom", 1);
+//         odom_pub_=node.advertise<geometry_msgs::PoseStamped> ("drive/pose_odom", 1);
   
-        pose_map_pub_=node.advertise<geometry_msgs::PoseStamped> ("drive/pose_map", 1);
+//         pose_map_pub_=node.advertise<geometry_msgs::PoseStamped> ("drive/pose_map", 1);
         
         // SET MIN MAX FILTER DISTANCE
 
@@ -1011,8 +1011,8 @@ public:
 //                     this->msf_pose_update_pub_.publish(msf_pose_update);
 //                     this->msf_pose_pub_.publish(msf_pose);
 
-                   this->odom_pub_.publish(drive_odom_msg);
-                    this->pose_map_pub_.publish(drive_map_msg);
+//                    this->odom_pub_.publish(drive_odom_msg);
+//                     this->pose_map_pub_.publish(drive_map_msg);
                     //this->snap_pointcloud_output_.publish(output);
 
 
@@ -1274,9 +1274,9 @@ typedef struct
 
   // if is_live_data OFF & sync_data ON
 
-  ros::Publisher odom_pub_;
-  ros::Publisher pose_map_pub_;
-  ros::Publisher pose_odom_pub_;
+//   ros::Publisher odom_pub_;
+//   ros::Publisher pose_map_pub_;
+//   ros::Publisher pose_odom_pub_;
   st_sync_data_ *odom_data_sync_;
   st_pose_data_ *odom_pose_sync_;
   st_pose_data_ *map_pose_sync_;

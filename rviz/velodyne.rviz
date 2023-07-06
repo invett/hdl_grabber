@@ -69,7 +69,7 @@ Visualization Manager:
       Min Color: 0; 0; 0
       Name: PointCloud2
       Position Transformer: XYZ
-      Queue Size: 10
+      Queue Size: 1
       Selectable: false
       Size (Pixels): 2
       Size (m): 0.009999999776482582
