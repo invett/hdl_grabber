@@ -218,8 +218,8 @@ public:
             nmea_pub_ = node.advertise<nmea_msgs::Sentence>("/velodyne/nmea_sentence",10);
         }
         
-        msf_pose_update_pub_ = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/msf_core/pose_after_update",2);
-        msf_pose_pub_ = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/msf_core/pose",2);
+        //msf_pose_update_pub_ = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/msf_core/pose_after_update",2);
+        //msf_pose_pub_ = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/msf_core/pose",2);
         odom_pub_=node.advertise<geometry_msgs::PoseStamped> ("drive/pose_odom", 1);
   
         pose_map_pub_=node.advertise<geometry_msgs::PoseStamped> ("drive/pose_map", 1);
@@ -723,8 +723,8 @@ public:
                     this->nav_fix_pub_.publish(msg_fix);
                         
                 }
-                this->msf_pose_update_pub_.publish(msf_pose_update);
-                this->msf_pose_pub_.publish(msf_pose);
+//                 this->msf_pose_update_pub_.publish(msf_pose_update);
+//                 this->msf_pose_pub_.publish(msf_pose);
                 sync_idx=-1;
                 }
                 //this->output_.publish(output);
@@ -1008,8 +1008,8 @@ public:
                     }
                     msf_pose.header.stamp = output.header.stamp;
                     msf_pose_update.header.stamp = output.header.stamp;
-                    this->msf_pose_update_pub_.publish(msf_pose_update);
-                    this->msf_pose_pub_.publish(msf_pose);
+//                     this->msf_pose_update_pub_.publish(msf_pose_update);
+//                     this->msf_pose_pub_.publish(msf_pose);
 
                    this->odom_pub_.publish(drive_odom_msg);
                     this->pose_map_pub_.publish(drive_map_msg);
@@ -1292,8 +1292,8 @@ typedef struct
   ros::Publisher nmea_pub_;
   bool is_new_gps_imu_;
   // HDL_slam prior poses
-  ros::Publisher msf_pose_update_pub_;
-  ros::Publisher msf_pose_pub_;
+//   ros::Publisher msf_pose_update_pub_;
+//   ros::Publisher msf_pose_pub_;
   ros::Subscriber sub_hdl_slam_odom_;
 
   // if is_live_data OFF
