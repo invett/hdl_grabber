@@ -7,7 +7,7 @@
 
         <arg name="model"                default="VLP32C" />
         <arg name="frame_id"             default="velodyne_right" />
-        <arg name="pcloud_topic"         default="velodyne_points" />
+        <arg name="pcloud_topic"         default="/velodyne/points" />
         <arg name="calib_file"           default="$(find hdl_grabber)/calib_files/32db.xml" />
         <arg name="ipaddress"            default="172.29.21.9" />
         <arg name="port"                 default="2368" />

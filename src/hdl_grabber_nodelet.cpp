@@ -201,21 +201,21 @@ public:
         private_nh.param("pcloud_topic", pcloud_topic, std::string("velodyne_points"));
         output_ = mt_node.advertise<sensor_msgs::PointCloud2> (pcloud_topic, 4);
         // advertise topics
-        snap_pointcloud_output_ = mt_node.advertise<sensor_msgs::PointCloud2> ("velodyne_points", 10);
+        //snap_pointcloud_output_ = mt_node.advertise<sensor_msgs::PointCloud2> ("velodyne_points", 10);
         service_pcl_ = mt_node.advertiseService("request_pcloud_sweep", &HdlGrabberNodelet::serverPCloudSweep, this);
         gps_data_.reset(new HDLGrabberDriver::HDLIMUData);  
         // point cloud request service for solving navigation tests and cloud by cloud pcap data reading
         request_pcl_srv_ = mt_node.serviceClient<hdl_msgs::getPCloudSweep>("request_pcloud_sweep");
-        imu_pub_ = node.advertise<sensor_msgs::Imu>("/vn100/imu_data", 1);
-        imu_vel_pub_ = node.advertise<sensor_msgs::Imu>("/gpsimu_driver/imu_data", 1);
+        // imu_pub_ = node.advertise<sensor_msgs::Imu>("/vn100/imu_data", 1);
+        imu_vel_pub_ = node.advertise<sensor_msgs::Imu>("/velodyne/imu_data", 1);
         
         if(is_enable_gps_)
         {
-            nav_fix_pub_ = node.advertise<sensor_msgs::NavSatFix>("/gps/navsat", 2);
+            nav_fix_pub_ = node.advertise<sensor_msgs::NavSatFix>("/velodyne/gps", 2);
         }
         else
         {
-            nmea_pub_ = node.advertise<nmea_msgs::Sentence>("/nmea_sentence",10);
+            nmea_pub_ = node.advertise<nmea_msgs::Sentence>("/velodyne/nmea_sentence",10);
         }
         
         msf_pose_update_pub_ = node.advertise<geometry_msgs::PoseWithCovarianceStamped>("/msf_core/pose_after_update",2);
@@ -736,45 +736,46 @@ public:
                 
             }
         }
-                // publish IMU 100 Hz
-        if(this->is_IMU_on_ && id_sync_imu>0)
-        {
-            imu_now = ros::Time::now();
-            diff_time = imu_now.toSec() -imu_last.toSec();
-
-            
-            if((diff_time*1000)> 8)
-            {
-                imu_last = imu_now;
-                
-                for (ii=id_imu;ii<this->iimu_samples_;ii++)
-                {
-                    
-                    if(this->imu_pose_sync_[ii].sweep_counter == id_sync_imu )
-                    {
-                        //ROS_WARN_STREAM("Diff time "<< (diff_time*1000) <<"    id_sync_imu "<<id_sync_imu << "timestamp " <<this->imu_pose_sync_[ii].timestamp);
-                            msg_imu.linear_acceleration.x = (double)this->imu_pose_sync_[ii].accx;
-                            msg_imu.linear_acceleration.y = (double)this->imu_pose_sync_[ii].accy;
-                            msg_imu.linear_acceleration.z = (double)this->imu_pose_sync_[ii].accz;
-                            msg_imu.angular_velocity.x = (double)this->imu_pose_sync_[ii].gyrox;
-                            msg_imu.angular_velocity.y = (double)this->imu_pose_sync_[ii].gyroy;
-                            msg_imu.angular_velocity.z = (double)this->imu_pose_sync_[ii].gyroz;
-                            q.setRPY(this->imu_pose_sync_[ii].roll, this->imu_pose_sync_[ii].pitch, this->imu_pose_sync_[ii].yaw);
-                            msg_imu.orientation.w = q.w();
-                            msg_imu.orientation.x = q.x();
-                            msg_imu.orientation.y = q.y();
-                            msg_imu.orientation.z = q.z();
-                            msg_imu.header.stamp = ros::Time::now();
-                            msg_imu.header.frame_id = "/velodyne";
-                            this->imu_pub_.publish(msg_imu);
-                            id_imu =ii+1;
-                            break;
-                    }
-                            
-                }
-
-            }
-        }
+        
+//                 // publish IMU 100 Hz
+//         if(this->is_IMU_on_ && id_sync_imu>0)
+//         {
+//             imu_now = ros::Time::now();
+//             diff_time = imu_now.toSec() -imu_last.toSec();
+// 
+//             
+//             if((diff_time*1000)> 8)
+//             {
+//                 imu_last = imu_now;
+//                 
+//                 for (ii=id_imu;ii<this->iimu_samples_;ii++)
+//                 {
+//                     
+//                     if(this->imu_pose_sync_[ii].sweep_counter == id_sync_imu )
+//                     {
+//                         //ROS_WARN_STREAM("Diff time "<< (diff_time*1000) <<"    id_sync_imu "<<id_sync_imu << "timestamp " <<this->imu_pose_sync_[ii].timestamp);
+//                             msg_imu.linear_acceleration.x = (double)this->imu_pose_sync_[ii].accx;
+//                             msg_imu.linear_acceleration.y = (double)this->imu_pose_sync_[ii].accy;
+//                             msg_imu.linear_acceleration.z = (double)this->imu_pose_sync_[ii].accz;
+//                             msg_imu.angular_velocity.x = (double)this->imu_pose_sync_[ii].gyrox;
+//                             msg_imu.angular_velocity.y = (double)this->imu_pose_sync_[ii].gyroy;
+//                             msg_imu.angular_velocity.z = (double)this->imu_pose_sync_[ii].gyroz;
+//                             q.setRPY(this->imu_pose_sync_[ii].roll, this->imu_pose_sync_[ii].pitch, this->imu_pose_sync_[ii].yaw);
+//                             msg_imu.orientation.w = q.w();
+//                             msg_imu.orientation.x = q.x();
+//                             msg_imu.orientation.y = q.y();
+//                             msg_imu.orientation.z = q.z();
+//                             msg_imu.header.stamp = ros::Time::now();
+//                             msg_imu.header.frame_id = "/velodyne";
+//                             this->imu_pub_.publish(msg_imu);
+//                             id_imu =ii+1;
+//                             break;
+//                     }
+//                             
+//                 }
+// 
+//             }
+//         }
 
         boost::this_thread::sleep (boost::posix_time::microseconds (300));
 
@@ -1012,7 +1013,7 @@ public:
 
                    this->odom_pub_.publish(drive_odom_msg);
                     this->pose_map_pub_.publish(drive_map_msg);
-                    this->snap_pointcloud_output_.publish(output);
+                    //this->snap_pointcloud_output_.publish(output);
 
 
                 }else{
@@ -1066,7 +1067,7 @@ public:
                                         msg_imu.orientation.z = q.z();
                                         msg_imu.header.stamp = ros::Time::now();
                                         msg_imu.header.frame_id = "/velodyne";
-                                        this->imu_pub_.publish(msg_imu);
+                                        // this->imu_pub_.publish(msg_imu);
                                         id_imu =ii+1;
                                         break;
                                 }
@@ -1256,7 +1257,7 @@ typedef struct
   boost::shared_ptr<const HDLGrabberDriver::HDLIMUData> gps_data_;
   boost::mutex gps_mutex_;
   //hdl_grabber_driver::getPointCloudSnap pcl_srv_;
-  ros::Publisher snap_pointcloud_output_;
+  //    ros::Publisher snap_pointcloud_output_;
 
   bool sync_data_;
   bool is_live_data_;
@@ -1282,7 +1283,7 @@ typedef struct
   unsigned int iodom_samples_;
   unsigned int iimu_samples_;
 
-  ros::Publisher imu_pub_;
+  // ros::Publisher imu_pub_;
   st_imu_data_ *imu_pose_sync_;
   bool is_IMU_on_;
   // On-board GPS IMU 
