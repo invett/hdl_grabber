@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <!--WARNING! STANDALONE NODELET SPECIFIED IN THE FOLLOWING NODELET - AUGUSTO SET THIS WAY TO PROFILE THE NODE-->
+    <include file="$(find hdl_grabber)/launch/hdl_grabber_nodelet.launch">
+
+        <arg name="nodelet_manager"      default="hdl_grabber_nodelet_manager" />
+        <arg name="velodyne_nodelet"     default="hdl_grabber_nodelet" />
+
+        <arg name="model"                default="HDL32E" />
+        <arg name="frame_id"             default="velodyne" />
+        <arg name="pcloud_topic"         default="/velodyne/points" />
+        <arg name="calib_file"           default="$(find hdl_grabber)/calib_files/32db.xml" />
+                
+        <arg name="minFilterDistance"    default="0.0" /> 
+        <arg name="maxFilterDistance"    default="150.0" />
+	
+        
+    </include>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hdl_grabber)/rviz/velodyne.rviz"/>
+    
+</launch>

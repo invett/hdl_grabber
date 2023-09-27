@@ -17,9 +17,12 @@
 	<arg name="minFilterDistance"    default="0.0" /> 
 	<arg name="maxFilterDistance"    default="150.0" />
 	 
-	<arg name="datapath"             default="/home/carlota/5_Data/SHOW/" />
- 	<arg name="pcap"                 default="2022_02_14/velodyne/vuelta_10_km_h.pcapng" />	
-
+	<!--<arg name="datapath"             default="/home/carlota/5_Data/SHOW/" />
+ 	<arg name="pcap"                 default="2022_02_14/velodyne/vuelta_10_km_h.pcapng" />	-->
+    
+    <arg name="datapath"             default="" />
+    <arg name="pcap"                 default="" /> 
+        
  	<arg name="ismapping"            default="true" /> 	   
 	<arg name="syncdata"             default="" />
 	<arg name="sweep_corr_file"      default="" />
@@ -34,8 +37,15 @@
 		
 
 	<!-- in case you use velodyne_driver, comment out the following line -->
-	<node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>   <!-- hdl_grabber_nodelet -->
+    <!-- hdl_grabber_nodelet -->
+	<!--<node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>   
 	<node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="load hdl_grabber/HdlGrabberNodelet $(arg nodelet_manager)">
+    -->     
+    <!-- standalone version  -->
+	<!--<node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet" launch-prefix="valgrind - -tool=callgrind - -callgrind-out-file='VELODYNE_DRIVER.%p'" >-->
+
+    <node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet">
+            
 
 		<param name="model"        type="string"          value="$(arg model)" />
 		<param name="frame_id"     type="string"          value="$(arg frame_id)" />
