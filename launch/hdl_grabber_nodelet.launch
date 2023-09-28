@@ -7,7 +7,7 @@
 	<arg name="velodyne_nodelet"     default="hdl_grabber_nodelet" />
 
 
-	<arg name="model"                default="VLP32C" />
+	<arg name="model"                default="HDL32E" />
 	<arg name="frame_id"             default="velodyne" />
 	<arg name="pcloud_topic"         default="velodyne_points" />
 	<arg name="calib_file"           default="$(find hdl_grabber)/calib_files/VLP-32c.xml" />
@@ -38,15 +38,14 @@
 
 	<!-- in case you use velodyne_driver, comment out the following line -->
     <!-- hdl_grabber_nodelet -->
-	<!--<node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>   
-	<node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="load hdl_grabber/HdlGrabberNodelet $(arg nodelet_manager)">
+	<!--
+        <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>   
+        <node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="load hdl_grabber/HdlGrabberNodelet $(arg nodelet_manager)">
     -->     
-    <!-- standalone version  -->
-	<!--<node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet" launch-prefix="valgrind - -tool=callgrind - -callgrind-out-file='VELODYNE_DRIVER.%p'" >-->
+    <!-- standalone version  (following line used to profile the node. valgrind results are in .ros, use kcachegrind to inspect the file-->
+        <!--<node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet" launch-prefix="valgrind - -tool=callgrind - -callgrind-out-file='VELODYNE_DRIVER.%p'" >-->
 
     <node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet" output="screen">
-            
-
 		<param name="model"        type="string"          value="$(arg model)" />
 		<param name="frame_id"     type="string"          value="$(arg frame_id)" />
 		<param name="pcloud_topic" type="string"          value="$(arg pcloud_topic)" />
