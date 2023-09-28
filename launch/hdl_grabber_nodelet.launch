@@ -44,7 +44,7 @@
     <!-- standalone version  -->
 	<!--<node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet" launch-prefix="valgrind - -tool=callgrind - -callgrind-out-file='VELODYNE_DRIVER.%p'" >-->
 
-    <node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet">
+    <node pkg="nodelet" type="nodelet" name="$(arg velodyne_nodelet)" args="standalone hdl_grabber/HdlGrabberNodelet" output="screen">
             
 
 		<param name="model"        type="string"          value="$(arg model)" />

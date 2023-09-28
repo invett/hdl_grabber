@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string>
 #include <pcl/io/pcd_io.h>
+#include <ros/ros.h>
 
 #ifndef ISROS
 #define ISROS 1
@@ -94,15 +95,15 @@ HDLGrabberDriver::HDLGrabberDriver(const boost::asio::ip::address &ipAddress,
           current_snap_sweep_xyzi_(new pcl::PointCloud<pcl::PointXYZI>()),
           current_snap_sweep_xyzrgb_(new pcl::PointCloud<pcl::PointXYZRGBA>()), firecount(0), is_set_pause_on_(false),
           scan_data_count_(0), is_scan_correction_on_(true), velodyne_model_(vmodel), isTransformOn_(false) {
-    printf("\033[1;33m");
-    printf("\n VELODYNE DRIVER \n");
+    
+    ROS_INFO_STREAM("VELODYNE DRIVER starting");
+    ROS_INFO("Selected Velodyne Sensor with variable velodyne_model_ %d", velodyne_model_);
 
     sweepCorrectionFile_.clear();
-    printf("velodyne_model_ %d\n", velodyne_model_);
     initialize(correctionsFile);
 
     if (pcap_file_name_.empty())
-        std::cout << "NO PCAP" << std::endl;
+        ROS_WARN_STREAM("NO PCAP");
 
 }
 
@@ -121,8 +122,7 @@ HDLGrabberDriver::~HDLGrabberDriver() throw() {
     disconnect_all_slots<sig_cb_velodyne_hdl_snap_sweep_point_cloud_xyzrgb>();
     disconnect_all_slots<sig_cb_velodyne_hdl_snap_sweep_point_cloud_xyzi>();
 
-    printf("\n VELODYNE DRIVER \n");
-    printf("\033[0m");
+    ROS_INFO_STREAM("VELODYNE DRIVER stopping");
 
 }
 
@@ -187,18 +187,18 @@ void HDLGrabberDriver::initialize(const std::string &correctionsFile) {
     switch (velodyne_model_) {
         case VLP_32C:
             model_dist_correction_ = 0.004;
-            printf("loadVPLC32Corrections\n");
+            ROS_INFO_STREAM("Load VPLC32 Corrections");
             break;
         case VLP_16:
             model_dist_correction_ = 0.002;
-            printf("loadVPL16Corrections\n");
+            ROS_INFO_STREAM("Load VPL16 Corrections");
             break;
         case HDL_32E:
             model_dist_correction_ = 0.002;
-            printf("loadHDL32Corrections\n");
+            ROS_INFO_STREAM("Load HDL32 Corrections");
             break;
         default:
-            printf("NOT DEFINED \n");
+            ROS_INFO_STREAM("SENSOR NOT DEFINED");
             break;;
     }
 
@@ -363,11 +363,11 @@ void HDLGrabberDriver::loadScanInterpolationCorrectionData() {
     scan_correction_LUT_ = NULL;
 
     if (sweepCorrectionFile_.empty()) {
-        std::cerr << "\t hdl_grabber_driver.cpp -- Error: sweep corrections file name is empty" << std::endl;
+        ROS_ERROR_STREAM("hdl_grabber_driver.cpp -- Error: sweep corrections file name is empty");
     } 
     else 
     {
-        std::cerr << "\t hdl_grabber_driver.cpp -- sweep corr: " << sweepCorrectionFile_ << std::endl;
+        ROS_INFO_STREAM("hdl_grabber_driver.cpp -- sweep corr: " << sweepCorrectionFile_);
         scanFile_ = fopen(sweepCorrectionFile_.c_str(), "r");
         if (scanFile_ != NULL) {
 
@@ -566,14 +566,15 @@ void HDLGrabberDriver::start() {
     loadScanInterpolationCorrectionData();
 
 
-    if (scan_correction_LUT_ == NULL) {
+    if (scan_correction_LUT_ == NULL) 
+    {
+        ROS_WARN_STREAM("hdl_grabber_driver.cpp -- Correction is OFF");
         is_scan_correction_on_ = false;
-        std::cerr << "\t hdl_grabber_driver.cpp --  Correction if OFF" << std::endl;
-    } else {
-
-        std::cerr << " Correction if ON" << std::endl;
+    } 
+    else 
+    {
+        ROS_INFO_STREAM("hdl_grabber_driver.cpp -- Correction if ON");
         is_scan_correction_on_ = true;
-
     }
 
     if (pcap_file_name_.empty()) {
@@ -622,7 +623,9 @@ void HDLGrabberDriver::start() {
         if (this->use_gps_) {
             GPS_read_packet_thread_ = new boost::thread(boost::bind(&HDLGrabberDriver::readGPSPacketsFromSocket, this));
         }
-    } else {
+    }     
+    else 
+    {
 
         std::cout << "start read packet" << std::endl;
         hdl_read_packet_thread_ = new boost::thread(boost::bind(&HDLGrabberDriver::readPacketsFromPcap, this));
@@ -631,24 +634,44 @@ void HDLGrabberDriver::start() {
 }
 
 void HDLGrabberDriver::processVelodynePackets() {
-    while (true) {
+    while (true) 
+    {
         unsigned char *data;
 
         if (!hdl_data_.dequeue(data))
             return;
 
 
-        switch (velodyne_model_) {
+        unsigned char productID;
+        switch (velodyne_model_) 
+        {
             case VLP_32C:
+                
             case VLP_16:
-                toPointCloudsVPL(reinterpret_cast<HDLDataPacket *> (data));
-                break;
+                productID = toPointCloudsVPL(reinterpret_cast<HDLDataPacket *> (data));
+                if (productID != 0x22)
+                {
+                    ROS_ERROR_STREAM("WRONG LASER");
+                    ros::shutdown();
+                }
+                else
+                    ROS_INFO_STREAM_ONCE("ProductID 0x22 detected, you're connected to a VLP_16 or Puck LITE sensor");
+                break;                
+                
 
             case HDL_32E:
-                toPointClouds(reinterpret_cast<HDLDataPacket *> (data));
+                productID = toPointClouds(reinterpret_cast<HDLDataPacket *> (data));
+                if (productID != 0x21)
+                {
+                    ROS_ERROR_STREAM("WRONG LASER");
+                    ros::shutdown();
+                }
+                else
+                    ROS_INFO_STREAM_ONCE("ProductID 0x21 detected, you're connected to a HDL_32E sensor");
                 break;
+                
             default:
-                printf("NOT DEFINED \n");
+                ROS_ERROR_STREAM("NOT DEFINED \n");
                 break;;
         }
 
@@ -661,17 +684,20 @@ void HDLGrabberDriver::processVelodynePackets() {
 
 
 /////////////////////////////////////////////////////////////////////////////
-void HDLGrabberDriver::toPointClouds(HDLDataPacket *dataPacket) {
+unsigned char HDLGrabberDriver::toPointClouds(HDLDataPacket *dataPacket) {
     static uint32_t scanCounter = 0;
     static uint32_t sweepCounter = 0;
     static unsigned int stampcounter = 0;
     char temp[150];
     FILE *pcl_xyz = NULL;
-
+    
     std::string xyz_fname = "pcl_xyz/pcloud_%05u.pcd";// cambiar
     // std::string xyz_fname="/home/carlota/5_Data/SHOW/pruebas_villaverde/pcl_xyz/%06u.txt";// cambiar
     if (sizeof(HDLLaserReturn) != 3)
-        return;
+    {   
+        ROS_ERROR_STREAM("sizeof(HDLLaserReturn) != 3");
+        return -1;
+    }
 
     current_scan_xyz_.reset(new pcl::PointCloud<pcl::PointXYZ>());
     current_scan_xyzrgb_.reset(new pcl::PointCloud<pcl::PointXYZRGBA>());
@@ -690,7 +716,8 @@ void HDLGrabberDriver::toPointClouds(HDLDataPacket *dataPacket) {
     scanCounter++;
     // firecount++;
 
-    if (firecount == 0) { // cambiar !!
+    if (firecount == 0) 
+    { // cambiar !!
 
         if (velodyneTimef1 > dataPacket->gpsTimestamp)
             std::cout << "POSIBLE ERROR time stamp velodyne: "
@@ -859,10 +886,16 @@ void HDLGrabberDriver::toPointClouds(HDLDataPacket *dataPacket) {
 
     current_scan_xyz_->is_dense = current_scan_xyzrgb_->is_dense = current_scan_xyzi_->is_dense = true;
     fireCurrentScan(dataPacket->firingData[0].rotationalPosition, dataPacket->firingData[11].rotationalPosition);
+    
+    ROS_DEBUG("Return Mode: %#010x\n", dataPacket->blank1);
+    ROS_DEBUG("Product ID : %#010x\n", dataPacket->blank2);
+    
+    return dataPacket->blank2;
 
 }
 
-void HDLGrabberDriver::toPointCloudsVPL(HDLDataPacket *dataPacket) {
+unsigned char HDLGrabberDriver::toPointCloudsVPL(HDLDataPacket *dataPacket) 
+{
     static uint32_t scanCounter = 0;
     static uint32_t sweepCounter = 0;
     static unsigned int stampcounter = 0;
@@ -871,7 +904,10 @@ void HDLGrabberDriver::toPointCloudsVPL(HDLDataPacket *dataPacket) {
     //std::string xyz_fname="pcl_xyz/pcloud_%05u.pcd";// cambiar
     std::string xyz_fname = "/home/carlota/5_Data/SHOW/pruebas_villaverde/pcl_xyz_vlp16/%06u.txt";// cambiar
     if (sizeof(HDLLaserReturn) != 3)
-        return;
+    {   
+        ROS_ERROR_STREAM("sizeof(HDLLaserReturn) != 3");
+        return -1;
+    }    
 
     current_scan_xyz_.reset(new pcl::PointCloud<pcl::PointXYZ>());
     current_scan_xyzrgb_.reset(new pcl::PointCloud<pcl::PointXYZRGBA>());
@@ -880,6 +916,7 @@ void HDLGrabberDriver::toPointCloudsVPL(HDLDataPacket *dataPacket) {
     time_t time_;
     time(&time_);
     // time_t velodyneTime = (time_ & 0x00000000ffffffffl) << 32 | dataPacket->gpsTimestamp;
+        
     time_t velodyneTime = dataPacket->gpsTimestamp;
     current_scan_xyz_->header.stamp = velodyneTime;
     current_scan_xyzrgb_->header.stamp = velodyneTime;
@@ -918,7 +955,6 @@ void HDLGrabberDriver::toPointCloudsVPL(HDLDataPacket *dataPacket) {
             std::cout << "POSIBLE ERROR time stamp velodyne: " << dataPacket->gpsTimestamp - stampcounter << std::endl;
 
         stampcounter = dataPacket->gpsTimestamp;
-
     }
 
 
@@ -1121,6 +1157,11 @@ void HDLGrabberDriver::toPointCloudsVPL(HDLDataPacket *dataPacket) {
     current_scan_xyz_->is_dense = current_scan_xyzrgb_->is_dense = current_scan_xyzi_->is_dense = true;
     fireCurrentScan(dataPacket->firingData[0].rotationalPosition, dataPacket->firingData[11].rotationalPosition);
 
+    ROS_DEBUG("Return Mode: %#010x\n", dataPacket->blank1);
+    ROS_DEBUG("Product ID : %#010x\n", dataPacket->blank2);
+    
+    return dataPacket->blank2;
+    
 }
 
 void HDLGrabberDriver::computeXYZI(pcl::PointXYZI &point, int azimuth, HDLLaserReturn laserReturn,

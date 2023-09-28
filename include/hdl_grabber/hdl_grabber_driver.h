@@ -360,8 +360,8 @@ public:
     void readPacketsFromPcap(unsigned long long uSecDelay);
 
     void enqueueHDLPacket (const unsigned char *data,std::size_t bytesReceived);
-    void toPointClouds (HDLDataPacket *dataPacket);
-    void toPointCloudsVPL (HDLDataPacket *dataPacket);
+    unsigned char toPointClouds (HDLDataPacket *dataPacket);
+    unsigned char toPointCloudsVPL (HDLDataPacket *dataPacket);
 
     bool isAddressUnspecified (const boost::asio::ip::address& ip_address);
     void fireCurrentSweep ();

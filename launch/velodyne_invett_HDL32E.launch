@@ -18,6 +18,6 @@
         
     </include>
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hdl_grabber)/rviz/velodyne.rviz"/>
+<!--     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hdl_grabber)/rviz/velodyne.rviz"/> -->
     
 </launch>

@@ -79,21 +79,23 @@ namespace hdl_grabber {
             if ((config_.model == "HDL64E"))    // generates 1333312 points per second
             {                                   // 1 packet holds 384 points
                 config_.emodel = HDLGrabberDriver::HDL_64E;
-
-            } else if (config_.model == "HDL32E") {
+            } else if (config_.model == "HDL32E") 
+            {
                 config_.emodel = HDLGrabberDriver::HDL_32E;
-            } else if (config_.model == "VLP32C") {
-
+            } else if (config_.model == "VLP32C") 
+            {
                 config_.emodel = HDLGrabberDriver::VLP_32C;
-            } else if (config_.model == "VLP16") {
-
+            } else if (config_.model == "VLP16") 
+            {
                 config_.emodel = HDLGrabberDriver::VLP_16;
-            } else {
+            } else 
+            {
                 ROS_ERROR_STREAM("unknown Velodyne LIDAR model: " << config_.model << " default model will be used");
                 config_.emodel = HDLGrabberDriver::HDL_32E;
             }
-            std::string deviceName(std::string("Velodyne ") + config_.model);
-            NODELET_INFO_STREAM("config_.model" << config_.model);
+            
+            std::string deviceName(std::string("Driver configured to read Velodyne ") + config_.model);
+            NODELET_INFO_STREAM(deviceName);
 
             std::string pcap_file;
             pcap_file = private_nh.param<std::string>("pcap", "");
@@ -119,84 +121,82 @@ namespace hdl_grabber {
             std::string temp;
 
             
-            if (!pcap_file.empty()) {
-                    
-                // get sync pose from file
-                temp.clear();
-                std::string odomname;
-                private_nh.param("syncdata", temp, std::string(""));
+            if (!pcap_file.empty()) 
+            {
+                    // get sync pose from file
+                    temp.clear();
+                    std::string odomname;
+                    private_nh.param("syncdata", temp, std::string(""));
 
-                if (temp.empty())
-                    temp.assign("temp.txt");
+                    if (temp.empty())
+                        temp.assign("temp.txt");
 
-                odomname = path;
-                odomname.append(temp);
-                ROS_WARN_STREAM("odomname : " << odomname.c_str());
-                if (!loadSyncData(odomname, is_mapping_on_)) {
-                    sync_data_ = false;
-                    ROS_INFO_STREAM("sync_data_=false : " << sync_data_);
+                    odomname = path;
+                    odomname.append(temp);
+                    ROS_WARN_STREAM("odomname : " << odomname.c_str());
+                    if (!loadSyncData(odomname, is_mapping_on_)) {
+                        sync_data_ = false;
+                        ROS_INFO_STREAM("sync_data_=false : " << sync_data_);
 
-                } else {
-                    sync_data_ = true;
-                    ROS_INFO_STREAM("sync_data_=true : " << sync_data_);
-                }
+                    } else {
+                        sync_data_ = true;
+                        ROS_INFO_STREAM("sync_data_=true : " << sync_data_);
+                    }
 
-                std::string sweep_corr_file;
-                private_nh.param("sweep_corr_file", sweep_corr_file, std::string(""));
-                temp.clear();
-                if (!sweep_corr_file.empty()) {
+                    std::string sweep_corr_file;
+                    private_nh.param("sweep_corr_file", sweep_corr_file, std::string(""));
+                    temp.clear();
+                    if (!sweep_corr_file.empty()) {
+                        temp.assign(path);
+                        temp.append(sweep_corr_file);
+                        sweep_corr_file.assign(temp);
+                    }
+                    temp.clear();
                     temp.assign(path);
-                    temp.append(sweep_corr_file);
-                    sweep_corr_file.assign(temp);
+                    temp.append(pcap_file);
+                    pcap_file.assign(temp);
+                    ROS_WARN_STREAM("pcap file" << pcap_file.c_str());
+                    ROS_WARN_STREAM("sweep Filte: " << sweep_corr_file.c_str());
+                    input_.reset(new HDLGrabberDriver(calib_file, pcap_file, isgps, true, sweep_corr_file, config_.emodel));
+                    input_->setPcapFilter(ipaddress, -1);
+                    ROS_INFO_STREAM("ipaddress: " << ipaddress.c_str());
+
+                    is_live_data_ = false;
+
+                } 
+            else 
+                {
+
+                    input_.reset(new HDLGrabberDriver(boost::asio::ip::address::from_string(ipaddress), udp_port, udp_port_gps,calib_file, true, true, config_.emodel));
+                    is_live_data_ = true;
                 }
-                temp.clear();
-                temp.assign(path);
-                temp.append(pcap_file);
-                pcap_file.assign(temp);
-                ROS_WARN_STREAM("pcap file" << pcap_file.c_str());
-                ROS_WARN_STREAM("sweep Filte: " << sweep_corr_file.c_str());
-                input_.reset(new HDLGrabberDriver(calib_file, pcap_file, isgps, true, sweep_corr_file, config_.emodel));
-                input_->setPcapFilter(ipaddress, -1);
-                ROS_INFO_STREAM("ipaddress: " << ipaddress.c_str());
-
-                is_live_data_ = false;
-
-            } else {
-
-                input_.reset(
-                        new HDLGrabberDriver(boost::asio::ip::address::from_string(ipaddress), udp_port, udp_port_gps,
-                                             calib_file, true, true, config_.emodel));
-
-                is_live_data_ = true;
-            }
 
             // Register a callback function that gets complete 360 degree sweeps.
-
-            boost::function<void(const CloudConstPtr &)> cloud_cb = boost::bind(
-                    &HdlGrabberNodelet::cloud_callback, this, _1);
+            boost::function<void(const CloudConstPtr &)> cloud_cb = boost::bind(&HdlGrabberNodelet::cloud_callback, this, _1);
             boost::signals2::connection cloud_connection = input_->registerCallback(cloud_cb);
 
-            boost::function<void(const CloudConstPtr &, float, float, unsigned int)> snap_cloud_cb =
-                    boost::bind(&HdlGrabberNodelet::snapScanCallback, this, _1, _2, _3, _4);
-            boost::signals2::connection snap_cloud_conn = input_->registerCallback(snap_cloud_cb);
+// AUGUSTO DELETES THESE LINES.
+//             boost::function<void(const CloudConstPtr &, float, float, unsigned int)> snap_cloud_cb = boost::bind(&HdlGrabberNodelet::snapScanCallback, this, _1, _2, _3, _4);
+//             boost::signals2::connection snap_cloud_conn = input_->registerCallback(snap_cloud_cb);
 
-            boost::function<void(const boost::shared_ptr<const HDLGrabberDriver::HDLIMUData> &)> gps_cb = boost::bind(
-                    &HdlGrabberNodelet::getGPSCallback, this, _1);
+            boost::function<void(const boost::shared_ptr<const HDLGrabberDriver::HDLIMUData> &)> gps_cb = boost::bind(&HdlGrabberNodelet::getGPSCallback, this, _1);
             boost::signals2::connection gps_connection = input_->registerCallback(gps_cb);
+            
             // pointcloud output topic
-
-            std::string pcloud_topic;
+            std::string pcloud_topic;            
             private_nh.param("pcloud_topic", pcloud_topic, std::string("velodyne_points"));
             output_ = mt_node.advertise<sensor_msgs::PointCloud2>(pcloud_topic, 10);
             
             // advertise topics
             //snap_pointcloud_output_ = mt_node.advertise<sensor_msgs::PointCloud2> ("velodyne_points", 10);
             
-            service_pcl_ = mt_node.advertiseService("request_pcloud_sweep", &HdlGrabberNodelet::serverPCloudSweep,this);
+// AUGUSTO DELETES THESE LINES.
+//             service_pcl_ = mt_node.advertiseService("request_pcloud_sweep", &HdlGrabberNodelet::serverPCloudSweep,this);
             gps_data_.reset(new HDLGrabberDriver::HDLIMUData);
-            
+
+// AUGUSTO DELETES THESE LINES.            
             // point cloud request service for solving navigation tests and cloud by cloud pcap data reading
-            request_pcl_srv_ = mt_node.serviceClient<hdl_msgs::getPCloudSweep>("request_pcloud_sweep");
+//             request_pcl_srv_ = mt_node.serviceClient<hdl_msgs::getPCloudSweep>("request_pcloud_sweep");
             
             // OTHER OLD THINGS BY CARLOTA
             // imu_pub_ = node.advertise<sensor_msgs::Imu>("/vn100/imu_data", 1);
@@ -453,7 +453,8 @@ namespace hdl_grabber {
         }
 
 
-        void cloud_callback(const CloudConstPtr &cloud) {
+        void cloud_callback(const CloudConstPtr &cloud) 
+        {
 
             boost::mutex::scoped_lock lock(cloud_mutex_);
             cloud_ = cloud;
@@ -479,7 +480,7 @@ namespace hdl_grabber {
                             boost::bind(&HdlGrabberNodelet::runPCloudAcquisition, this));
                 }
 
-
+// AUGUSTO DELETES THESE LINES.            
                 //snap_thread_ = new boost::thread(boost::bind(&HdlGrabberNodelet::snapScan, this));
                 //gps_thread_ = new boost::thread(boost::bind(&HdlGrabberNodelet::runGPSData, this));
             }
@@ -515,6 +516,7 @@ namespace hdl_grabber {
                     //    ROS_ERROR("VelodyneHDLDriver::runSyncAcquisition 1");
                     // copy
                     this->is_new_cloud_ = false;
+                    
                     // copy
                     sensor_msgs::PointCloud2 output;
                     pcl::PCLPointCloud2::Ptr cloud2(new pcl::PCLPointCloud2());
@@ -527,6 +529,7 @@ namespace hdl_grabber {
                     tdiff = output.header.stamp.toSec() - last_time.toSec();
                     //   ROS_WARN_STREAM("time betweenn pcloudds "<< tdiff);
                     last_time = output.header.stamp;
+                    
                     // write sync file
                     // get las data available from socket
                     // write all data + cloud_ptr->header.stamp
@@ -799,6 +802,8 @@ namespace hdl_grabber {
             return true;
         }
 
+// AUGUSTO DELETES THESE LINES (snapScan)        
+/*
 
         void snapScan() {
             int sync_idx = -1, ii;
@@ -841,7 +846,8 @@ namespace hdl_grabber {
                 if (cloud_ptr->size() > 0) {
                     // get sync data
 
-                    if (this->sync_data_) {
+                    if (this->sync_data_) 
+                    {
                         // get data from pose file
 
                         id_sync_imu = (int) cloud_ptr->header.seq;
@@ -971,7 +977,8 @@ namespace hdl_grabber {
                     drive_odom_msg.header.stamp = output.header.stamp;
                     drive_map_msg.header.stamp = output.header.stamp;
 
-                    if (sync_idx >= 0) {
+                    if (sync_idx >= 0) 
+                    {
 
                         if (this->is_enable_gps_) {
                             msg_fix.header.stamp = output.header.stamp;
@@ -988,7 +995,9 @@ namespace hdl_grabber {
                         //this->snap_pointcloud_output_.publish(output);
 
 
-                    } else {
+                    } 
+                    else 
+                    {
 
                         call_srv.request.num = 1;
                         if (this->request_pcl_srv_.call(call_srv)) {
@@ -1072,6 +1081,7 @@ namespace hdl_grabber {
             this->is_new_sweep_cloud_ = true;
         }
 
+        
         bool serverPCloudSweep(hdl_msgs::getPCloudSweep::Request &req,
                                hdl_msgs::getPCloudSweep::Response &res) {
             int num;
@@ -1088,6 +1098,8 @@ namespace hdl_grabber {
 
             return true;
         }
+        
+*/
 
         void getGPSCallback(const boost::shared_ptr<const HDLGrabberDriver::HDLIMUData> &data) {
 
@@ -1096,6 +1108,8 @@ namespace hdl_grabber {
             is_new_gps_imu_ = true;
         }
 
+// AUGUSTO DELETES THESE LINES (runGPSData)
+/*
         void runGPSData() {
 
             std::string nmea_sentence;
@@ -1143,6 +1157,7 @@ namespace hdl_grabber {
 
             }
         }
+*/
 
 
     private:
@@ -1213,7 +1228,10 @@ namespace hdl_grabber {
         boost::shared_ptr <HDLGrabberDriver> input_;
         ros::Publisher output_;
 
-        ros::ServiceServer service_pcl_;
+// AUGUSTO DELETES THESE LINES.            
+//         ros::ServiceServer service_pcl_;
+//         ros::ServiceClient request_pcl_srv_;
+        
         boost::mutex cloud_mutex_, snap_cloud_mutex_;
         CloudConstPtr cloud_, snap_cloud_;
         Cloud::Ptr cloud_ptr_;
@@ -1232,7 +1250,6 @@ namespace hdl_grabber {
         boost::thread *snap_thread_;
         boost::thread *gps_thread_;
 
-        ros::ServiceClient request_pcl_srv_;
 
 
         // if is_live_data OFF & sync_data ON
