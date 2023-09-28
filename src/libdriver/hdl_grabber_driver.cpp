@@ -720,19 +720,16 @@ unsigned char HDLGrabberDriver::toPointClouds(HDLDataPacket *dataPacket) {
     { // cambiar !!
 
         if (velodyneTimef1 > dataPacket->gpsTimestamp)
-            std::cout << "POSIBLE ERROR time stamp velodyne: "
-                      << (double) dataPacket->gpsTimestamp - (double) velodyneTimef1 << std::endl;
-
+            ROS_ERROR_STREAM("POSIBLE ERROR time stamp velodyne: " << (double) dataPacket->gpsTimestamp - (double) velodyneTimef1);
 
         velodyneTimef1 = dataPacket->gpsTimestamp;
         // get sweep params
-        if (is_scan_correction_on_) {
-            std::cerr << "getDataForScanCorrection" << std::endl;
-            getDataForScanCorrection(sweepCounter, &scan_correction_params_);
+        if (is_scan_correction_on_) 
+        {
+            ROS_ERROR_STREAM("getDataForScanCorrection" << getDataForScanCorrection(sweepCounter, &scan_correction_params_));
         }
         if (stampcounter > dataPacket->gpsTimestamp)
-            std::cout << "POSIBLE ERROR time stamp velodyne: "
-                      << (double) dataPacket->gpsTimestamp - (double) stampcounter << std::endl;
+            ROS_ERROR_STREAM("POSIBLE ERROR time stamp velodyne: " << (double) dataPacket->gpsTimestamp - (double) stampcounter);
 
         stampcounter = dataPacket->gpsTimestamp;
 
